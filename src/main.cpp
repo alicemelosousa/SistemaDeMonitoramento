@@ -18,7 +18,7 @@ RTC_DS1307 RTC;
 
 //Conexão planilha Google
 WiFiClientSecure client;//Cria um cliente seguro (para ter acesso ao HTTPS)
-String textFix = "GET /forms/d/e/1FAIpQLSebzLiNa-XS28xq6y-Nkp1ZtpKGvipdHWweiBNxZlA7pVn02Q/formResponse?ifq&entry.1212020823=";
+String strtosend = "GET /forms/d/e/1FAIpQLSebzLiNa-XS28xq6y-Nkp1ZtpKGvipdHWweiBNxZlA7pVn02Q/formResponse?ifq&entry.1212020823={a}&entry.149109020={r}";
 //Essa String sera uma auxiliar contendo o link utilizado pelo GET, para nao precisar ficar re-escrevendo toda hora
  
 
@@ -53,35 +53,43 @@ void loop()
 
     if (millis() - lastTimeLoop >= timeToSend) {
     DateTime now = RTC.now(); 
-    Serial.print(now.year(), DEC);
-    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(' ');
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.println(); 
-        
-    //     if (client.connect("docs.google.com", 443) == 1)//Tenta se conectar ao servidor do Google docs na porta 443 (HTTPS)
-    //     {
-    //         String toSend = textFix;//Atribuimos a String auxiliar na nova String que sera enviada
-    //         toSend += random(0, 501);//Adicionamos um valor aleatorio
-    //         toSend += "&submit=Submit HTTP/1.1";//Completamos o metodo GET para nosso formulario.
+    String datetime = "";
     
-    //         client.println(toSend);//Enviamos o GET ao servidor-
-    //         client.println("Host: docs.google.com");//-
-    //         client.println();//-
-    //         client.stop();//Encerramos a conexao com o servidor
-    //         Serial.println("Dados enviados.");//Mostra no monitor que foi enviado
-    //     }
-    //     else
-    //     {
-    //         Serial.println("Erro ao se conectar");//Se nao for possivel conectar no servidor, ira avisar no monitor.
-    //     }
+    datetime +=now.year();
+    datetime +="/";
+    datetime +=now.month();
+    datetime +="/";
+    datetime +=now.day();
+    
+    datetime +=" ";
+
+    datetime +=now.hour();
+    datetime +=":";
+    datetime +=now.minute();
+    datetime +=":";
+    datetime +=now.second();
+    
+   
+        
+        if (client.connect("docs.google.com", 443) == 1)//Tenta se conectar ao servidor do Google docs na porta 443 (HTTPS)
+        {
+            
+            String toSend = strtosend;//Atribuimos a String auxiliar na nova String que sera enviada
+            toSend.replace("{a}", String(random(0, 501)));//Adicionamos um valor aleatorio
+            toSend.replace("{r}", datetime);
+            toSend += "&submit=Submit HTTP/1.1";//Completamos o metodo GET para nosso formulario.
+            Serial.println(toSend);
+
+            client.println(toSend);//Enviamos o GET ao servidor-
+            client.println("Host: docs.google.com");//-
+            client.println();//-
+            client.stop();//Encerramos a conexao com o servidor
+            Serial.println("Dados enviados.");//Mostra no monitor que foi enviado
+        }
+        else
+        {
+            Serial.println("Erro ao se conectar");//Se nao for possivel conectar no servidor, ira avisar no monitor.
+        }
     lastTimeLoop = millis();
     }
 }
